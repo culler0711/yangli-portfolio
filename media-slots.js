@@ -7,6 +7,11 @@
 (function(){
   'use strict';
 
+  // PUBLISHED MODE: when true, all editing UI is hidden — visitors only see
+  // the finished content (photos, videos, embeds, résumé downloads, social links).
+  // Set to false again if you want to edit content in your browser.
+  var PUBLISHED = true;
+
   var IMG_KEY = 'yl_img_';
   var VID_KEY = 'yl_vid_';
   var POS_KEY = 'yl_pos_';
@@ -553,6 +558,42 @@
     refreshToolbar();
   }
 
+  /* ============================================================
+     Published mode — render finished content, no editing UI
+     ============================================================ */
+  function showPublished(slot){
+    var id = slot.dataset.slot;
+    var kind = slot.dataset.kind;
+
+    if(kind === 'video'){
+      var link = localStorage.getItem(VID_KEY + id) || '';
+      if(slot.classList.contains('has-baked')){
+        return; // baked <video> already in the HTML
+      }
+      if(localStorage.getItem(VIDFLAG + id) === '1'){
+        idbGet(id, function(err, blob){ if(!err && blob) setVideo(slot, blob); });
+        return;
+      }
+      if(link){ applyVideoLink(slot, link); return; }
+      // nothing to show — leave the placeholder graphic, but strip the "+ add" label
+      var lbl0 = slot.querySelector('.ph-label'); if(lbl0) lbl0.style.display='none';
+      return;
+    }
+
+    // photo slot
+    var savedImg = localStorage.getItem(IMG_KEY + id);
+    if(savedImg){
+      setImage(slot, savedImg);
+      var p = localStorage.getItem(POS_KEY + id);
+      if(p){ try { applyPos(slot, JSON.parse(p)); } catch(e){} }
+    } else if(slot.dataset.bakedImg){
+      setImage(slot, slot.dataset.bakedImg);
+      if(slot.dataset.bakedPos){ try { applyPos(slot, JSON.parse(slot.dataset.bakedPos)); } catch(e){} }
+    }
+    var lbl = slot.querySelector('.ph-label'); if(lbl) lbl.style.display='none';
+    slot.style.cursor = 'default';
+  }
+
   document.addEventListener('DOMContentLoaded', function(){
     // one-time cleanup: user asked to drop the proj5 Instagram link
     try {
@@ -592,11 +633,13 @@
     } catch(e){}
     // baked-in published videos take precedence — skip the upload UI for them
     document.querySelectorAll('.media-slot').forEach(function(sl){
+      if(PUBLISHED){ showPublished(sl); return; }
       if(sl.classList.contains('has-baked')) return;
       build(sl);
     });
     initSocials();
     initResume();
+    if(PUBLISHED){ document.body.classList.add('published'); }
     // re-label toolbar text when language flips
     document.querySelectorAll('.lang-toggle span').forEach(function(s){
       s.addEventListener('click', function(){
