@@ -434,6 +434,18 @@ body.lang-cn .contact-big{font-family:var(--font-display);font-weight:900;font-s
 .media-slot.dragover .slot-img,.media-slot.dragover .slot-video{filter:brightness(.6);}
 .slot-btn{display:inline-flex;align-items:center;}
 
+/* ===== PUBLISHED MODE — hide all editing UI from visitors ===== */
+.published .slot-bar,
+.published .slot-linkrow,
+.published .slot-zoomrow,
+.published .slot-hint,
+.published .social-edit,
+.published .social-editor,
+.published .resume-upload,
+.published .resume-remove{ display:none !important; }
+.published .media-slot{ cursor:default !important; }
+.published .resume-status[data-en="Ready ✓"]{ /* keep status visible */ }
+
 /* ---- baked-in published video (a real file in the site) ---- */
 .media-slot.has-baked{cursor:default;}
 .media-slot .baked-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:1;display:block;background:#0c0b2e;}
